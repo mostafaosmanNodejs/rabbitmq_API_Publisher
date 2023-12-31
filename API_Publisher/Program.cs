@@ -1,4 +1,6 @@
 using API_Publisher;
+using API_Publisher.bus;
+using MassTransit;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -11,8 +13,23 @@ builder.Services.Configure<MessageBrokerSettings>(
     builder.Configuration.GetSection("MessageBroker"));
 builder.Services.AddSingleton(sp=>
 sp.GetRequiredService<MessageBrokerSettings>());
-///
 
+// MassTransit Configuration
+builder.Services.AddMassTransit(busConfigure =>
+{
+    busConfigure.SetKebabCaseEndpointNameFormatter();
+    busConfigure.UsingRabbitMq((context, configurator) =>
+    {
+        MessageBrokerSettings settings = context.GetRequiredService<MessageBrokerSettings>();
+        configurator.Host(new Uri(settings.Host), h =>
+        {
+            h.Username(settings.UserName);
+            h.Password(settings.Password);
+        });
+    });
+});
+// EventBus Regstration
+builder.Services.AddTransient<IEventBus, EventBus>();  
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
