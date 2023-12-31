@@ -1,6 +1,8 @@
 using API_Publisher;
 using API_Publisher.bus;
 using MassTransit;
+using MassTransit.Configuration;
+using Microsoft.Extensions.Options;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -12,7 +14,7 @@ builder.Services.AddSwaggerGen();
 builder.Services.Configure<MessageBrokerSettings>(
     builder.Configuration.GetSection("MessageBroker"));
 builder.Services.AddSingleton(sp=>
-sp.GetRequiredService<MessageBrokerSettings>());
+sp.GetRequiredService<IOptions<MessageBrokerSettings>>().Value);
 
 // MassTransit Configuration
 builder.Services.AddMassTransit(busConfigure =>
